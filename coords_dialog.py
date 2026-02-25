@@ -166,7 +166,7 @@ class CoordsDialog(QDialog):
             self.new_table.setHorizontalHeaderLabels([
                 ( 'φ (geodetic latitude)' if self.lang=='en' else 'φ (geodetska širina)' ),
                 ( 'λ (geodetic longitude)' if self.lang=='en' else 'λ (geodetska dužina)' ),
-                self._t('Stanje', 'Stanje')
+                self._t('Status', 'Stanje')
             ])
         else:
             self.move_table.setHorizontalHeaderLabels([
@@ -179,7 +179,7 @@ class CoordsDialog(QDialog):
             self.new_table.setHorizontalHeaderLabels([
                 self._t('E (Y)', 'E (Y)'),
                 self._t('N (X)', 'N (X)'),
-                self._t('Stanje', 'Stanje')
+                self._t('Status', 'Stanje')
             ])
         self._apply_column_widths()
         # enforce non-editable old coordinate columns
@@ -237,7 +237,7 @@ class CoordsDialog(QDialog):
             self.new_table.setHorizontalHeaderLabels([
                 ( 'φ (geodetic latitude)' if self.lang=='en' else 'φ (geodetska širina)' ),
                 ( 'λ (geodetic longitude)' if self.lang=='en' else 'λ (geodetska dužina)' ),
-                self._t('Stanje', 'Stanje')
+                self._t('Status', 'Stanje')
             ])
         else:
             self.move_table.setHorizontalHeaderLabels([
@@ -250,7 +250,7 @@ class CoordsDialog(QDialog):
             self.new_table.setHorizontalHeaderLabels([
                 self._t('E (Y)', 'E (Y)'),
                 self._t('N (X)', 'N (X)'),
-                self._t('Stanje', 'Stanje')
+                self._t('Status', 'Stanje')
             ])
 
         # reset tables
@@ -377,7 +377,7 @@ class CoordsDialog(QDialog):
 
         lyr.triggerRepaint()
 
-        msg_en = f"Done.\nMoved: {moved}\nPreskočeno (unchanged/missing): {skipped}\nErrors: {errors}\n\nRemember: Save Edits (or Rollback) in QGIS."
+        msg_en = f"Done.\nMoved: {moved}\nSkipped (unchanged/missing): {skipped}\nErrors: {errors}\n\nRemember: Save Edits (or Rollback) in QGIS."
         msg_hr = f"Gotovo.\nPomaknuto: {moved}\nPreskočeno (nepromijenjeno/nedostaje): {skipped}\nGrešaka: {errors}\n\nNe zaboravi: Spremi izmjene (ili Poništi)."
         QMessageBox.information(self, "Coords", msg_en if self.lang == "en" else msg_hr)
 
@@ -433,7 +433,9 @@ Tip: Save layer to a writable format (e.g., GeoPackage) and try again."""
             b = _float_or_none(self.new_table.item(r, 1).text() if self.new_table.item(r, 1) else "")
             if a is None or b is None:
                 if self.new_table.item(r, 2):
-                    self.new_table.item(r, 2).setText("Preskočeno (nedostaje)")
+                    self.new_table.item(r, 2).setText(
+   		                self._t("Skipped (missing)", "Preskočeno (nedostaje)")
+                    )
                 skipped += 1
                 continue
 
@@ -450,7 +452,9 @@ Tip: Save layer to a writable format (e.g., GeoPackage) and try again."""
                     created += 1
                     added = out_feats[0]
                     if self.new_table.item(r, 2):
-                        self.new_table.item(r, 2).setText("Stvoreno ✓")
+                        self.new_table.item(r, 2).setText(
+                            self._t("Created ✓", "Stvoreno ✓")
+                        )                    
                     try:
                         lyr.selectByIds([added.id()])
                         self.iface.openFeatureForm(lyr, added, True)
@@ -466,7 +470,10 @@ Tip: Save layer to a writable format (e.g., GeoPackage) and try again."""
                     self.new_table.item(r, 2).setText("Error")
 
         lyr.triggerRepaint()
-        msg = (f"Stvoreno: {created}, Preskočeno: {skipped}, Errors: {errors}." if self.lang=='en' else f"Izrađeno: {created}, Preskočeno: {skipped}, Grešaka: {errors}.")
+        msg = self._t(
+            f"Created: {created}, Skipped: {skipped}, Errors: {errors}.",
+            f"Izrađeno: {created}, Preskočeno: {skipped}, Grešaka: {errors}."
+        )        
         QMessageBox.information(self, "Coords", msg)
 
     def _redo_last(self):
@@ -534,4 +541,3 @@ Tip: Save layer to a writable format (e.g., GeoPackage) and try again."""
                 self._update_crs_label(self._current_layer)
         except Exception:
             pass
-
